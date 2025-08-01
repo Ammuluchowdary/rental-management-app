@@ -13,11 +13,13 @@ import {
   FileText, 
   DollarSign, 
   Settings,
-  LogOut
+  LogOut,
+  Apartment
 } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
+  { name: "Apartments", href: "/apartments", icon: Apartment },
   { name: "Flats", href: "/flats", icon: Building },
   { name: "Tenants", href: "/tenants", icon: Users },
   { name: "Leases", href: "/leases", icon: FileText },
