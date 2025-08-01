@@ -1,82 +1,22 @@
+'use client'
+
+import { useState } from 'react'
 import FlatGrid from "@/components/FlatGrid"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { isSupabaseConfigured, createServerClient } from "@/lib/supabase"
-import { mockFlats } from "@/lib/mock-data"
+import { useDataStore } from "@/lib/data-store"
+import FlatForm from "@/components/FlatForm"
 import { Plus, Building, Eye, Users } from "lucide-react"
-import Link from "next/link"
 
-async function getFlats() {
-  // Always return mock data if Supabase is not properly configured
-  if (!isSupabaseConfigured()) {
-    console.log("Using mock flats data - Supabase not configured")
-    return mockFlats
-  }
-
-  try {
-    const supabase = createServerClient()
-
-    // Test connection first
-    const { data: testData, error: testError } = await supabase.from("flats").select("id").limit(1)
-
-    if (testError) {
-      console.log("Database connection failed, using mock data:", testError.message)
-      return mockFlats
-    }
-
-    // First, get all flats
-    const { data: allFlats, error: flatsError } = await supabase.from("flats").select("*").order("flat_number")
-
-    if (flatsError) {
-      console.error("Error fetching flats:", flatsError)
-      return mockFlats
-    }
-
-    // Then get active leases with tenant information
-    const { data: activeLeases, error: leasesError } = await supabase
-      .from("leases")
-      .select(`
-        flat_id,
-        tenants!inner(full_name)
-      `)
-      .eq("status", "active")
-
-    if (leasesError) {
-      console.error("Error fetching leases:", leasesError)
-      // Continue without lease data but don't fail completely
-    }
-
-    // Combine the data
-    const flatsWithLeases =
-      allFlats?.map((flat) => {
-        const activeLease = activeLeases?.find((lease) => lease.flat_id === flat.id)
-        return {
-          ...flat,
-          current_lease: activeLease
-            ? {
-                tenant: {
-                  full_name: activeLease.tenants.full_name,
-                },
-              }
-            : undefined,
-        }
-      }) || []
-
-    return flatsWithLeases
-  } catch (error) {
-    console.error("Error fetching flats:", error)
-    // Always return mock data as fallback
-    return mockFlats
-  }
-}
-
-export default async function FlatsPage() {
-  const flats = await getFlats()
-
-  const occupiedFlats = flats.filter((f: any) => f.status === "occupied")
-  const vacantFlats = flats.filter((f: any) => f.status === "vacant")
-  const maintenanceFlats = flats.filter((f: any) => f.status === "maintenance")
+export default function FlatsPage() {
+  const [showAddForm, setShowAddForm] = useState(false)
+  const { flats, getFlatsByStatus, getDashboardStats } = useDataStore()
+  
+  const stats = getDashboardStats()
+  const occupiedFlats = getFlatsByStatus('occupied')
+  const vacantFlats = getFlatsByStatus('vacant')
+  const maintenanceFlats = getFlatsByStatus('maintenance')
 
   return (
     <div className="space-y-6">
@@ -86,22 +26,21 @@ export default async function FlatsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Flats Management</h1>
           <p className="text-muted-foreground">Manage all flats in your building</p>
         </div>
-        <Link href="/flats/add">
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add New Flat
-          </Button>
-        </Link>
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setShowAddForm(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Add New Flat
+        </Button>
       </div>
 
-      {/* Demo Mode Warning */}
-      {!isSupabaseConfigured() && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            <strong>Demo Mode:</strong> Showing sample data. Configure Supabase to connect to your database.
-          </p>
-        </div>
-      )}
+      {/* Dynamic Data Notice */}
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-800">
+          <strong>Dynamic Mode:</strong> All changes are saved locally and persist between sessions.
+        </p>
+      </div>
 
       {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -111,7 +50,7 @@ export default async function FlatsPage() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{flats.length}</div>
+            <div className="text-2xl font-bold">{stats.totalFlats}</div>
             <p className="text-xs text-muted-foreground">All units in building</p>
           </CardContent>
         </Card>
@@ -122,9 +61,9 @@ export default async function FlatsPage() {
             <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{occupiedFlats.length}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.occupiedFlats}</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((occupiedFlats.length / flats.length) * 100)}% occupancy
+              {stats.totalFlats > 0 ? Math.round((stats.occupiedFlats / stats.totalFlats) * 100) : 0}% occupancy
             </p>
           </CardContent>
         </Card>
@@ -135,7 +74,7 @@ export default async function FlatsPage() {
             <Eye className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{vacantFlats.length}</div>
+            <div className="text-2xl font-bold text-yellow-600">{stats.vacantFlats}</div>
             <p className="text-xs text-muted-foreground">Available for rent</p>
           </CardContent>
         </Card>
@@ -146,7 +85,7 @@ export default async function FlatsPage() {
             <Building className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{maintenanceFlats.length}</div>
+            <div className="text-2xl font-bold text-red-600">{stats.maintenanceFlats}</div>
             <p className="text-xs text-muted-foreground">Under repair</p>
           </CardContent>
         </Card>
@@ -155,13 +94,13 @@ export default async function FlatsPage() {
       {/* Filter Tabs */}
       <div className="flex gap-2">
         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-          Occupied ({occupiedFlats.length})
+          Occupied ({stats.occupiedFlats})
         </Badge>
         <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-          Vacant ({vacantFlats.length})
+          Vacant ({stats.vacantFlats})
         </Badge>
         <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-          Maintenance ({maintenanceFlats.length})
+          Maintenance ({stats.maintenanceFlats})
         </Badge>
       </div>
 
@@ -200,6 +139,14 @@ export default async function FlatsPage() {
           </div>
         )}
       </div>
+
+      {/* Add Form Modal */}
+      {showAddForm && (
+        <FlatForm
+          onClose={() => setShowAddForm(false)}
+          onSuccess={() => setShowAddForm(false)}
+        />
+      )}
     </div>
   )
 }

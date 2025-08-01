@@ -1,196 +1,219 @@
-import { Suspense } from "react"
+'use client'
+
+import { useState } from "react"
 import DashboardStats from "@/components/DashboardStats"
-import FlatGrid from "@/components/FlatGrid"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { isSupabaseConfigured, createServerClient } from "@/lib/supabase"
-import { mockDashboardStats, mockFlats } from "@/lib/mock-data"
-import type { DashboardStats as DashboardStatsType } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useDataStore } from "@/lib/data-store"
+import FlatGrid from "@/components/FlatGrid"
+import { Building, Users, DollarSign, AlertTriangle, TrendingUp, Home, Eye, Settings } from "lucide-react"
+import Link from "next/link"
 
-async function getDashboardStats(): Promise<DashboardStatsType> {
-  // Always return mock data if Supabase is not properly configured
-  if (!isSupabaseConfigured()) {
-    console.log("Using mock dashboard stats - Supabase not configured")
-    return mockDashboardStats
-  }
-
-  try {
-    const supabase = createServerClient()
-
-    // Test connection first
-    const { data: testData, error: testError } = await supabase.from("flats").select("id").limit(1)
-
-    if (testError) {
-      console.log("Database connection failed, using mock data:", testError.message)
-      return mockDashboardStats
-    }
-
-    // Get flat statistics
-    const { data: flats, error: flatsError } = await supabase.from("flats").select("status")
-
-    if (flatsError) {
-      console.error("Error fetching flats for stats:", flatsError)
-      return mockDashboardStats
-    }
-
-    // Get payment statistics
-    const { data: payments, error: paymentsError } = await supabase
-      .from("rent_payments")
-      .select("status, amount")
-      .gte("due_date", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
-
-    if (paymentsError) {
-      console.error("Error fetching payments for stats:", paymentsError)
-      return mockDashboardStats
-    }
-
-    // Calculate statistics
-    const totalFlats = flats?.length || 0
-    const occupiedFlats = flats?.filter((f) => f.status === "occupied").length || 0
-    const vacantFlats = flats?.filter((f) => f.status === "vacant").length || 0
-    const maintenanceFlats = flats?.filter((f) => f.status === "maintenance").length || 0
-
-    const pendingPayments = payments?.filter((p) => p.status === "pending").length || 0
-    const overduePayments = payments?.filter((p) => p.status === "overdue").length || 0
-    const totalRentCollected = payments?.filter((p) => p.status === "paid").reduce((sum, p) => sum + p.amount, 0) || 0
-    const totalRentPending =
-      payments?.filter((p) => p.status === "pending" || p.status === "overdue").reduce((sum, p) => sum + p.amount, 0) ||
-      0
-
-    return {
-      totalFlats,
-      occupiedFlats,
-      vacantFlats,
-      maintenanceFlats,
-      pendingPayments,
-      overduePayments,
-      totalRentCollected,
-      totalRentPending,
-    }
-  } catch (error) {
-    console.error("Error fetching dashboard stats:", error)
-    // Always return mock data as fallback
-    return mockDashboardStats
-  }
-}
-
-async function getFlats() {
-  // Always return mock data if Supabase is not properly configured
-  if (!isSupabaseConfigured()) {
-    console.log("Using mock flats data - Supabase not configured")
-    return mockFlats
-  }
-
-  try {
-    const supabase = createServerClient()
-
-    // Test connection first
-    const { data: testData, error: testError } = await supabase.from("flats").select("id").limit(1)
-
-    if (testError) {
-      console.log("Database connection failed, using mock data:", testError.message)
-      return mockFlats
-    }
-
-    // First, get all flats
-    const { data: allFlats, error: flatsError } = await supabase.from("flats").select("*").order("flat_number")
-
-    if (flatsError) {
-      console.error("Error fetching flats:", flatsError)
-      return mockFlats
-    }
-
-    // Then get active leases with tenant information
-    const { data: activeLeases, error: leasesError } = await supabase
-      .from("leases")
-      .select(`
-        flat_id,
-        tenants!inner(full_name)
-      `)
-      .eq("status", "active")
-
-    if (leasesError) {
-      console.error("Error fetching leases:", leasesError)
-      // Continue without lease data but don't fail completely
-    }
-
-    // Combine the data
-    const flatsWithLeases =
-      allFlats?.map((flat) => {
-        const activeLease = activeLeases?.find((lease) => lease.flat_id === flat.id)
-        return {
-          ...flat,
-          current_lease: activeLease
-            ? {
-                tenant: {
-                  full_name: activeLease.tenants.full_name,
-                },
-              }
-            : undefined,
-        }
-      }) || []
-
-    return flatsWithLeases
-  } catch (error) {
-    console.error("Error fetching flats:", error)
-    // Always return mock data as fallback
-    return mockFlats
-  }
-}
-
-export default async function Dashboard() {
-  const [stats, flats] = await Promise.all([getDashboardStats(), getFlats()])
+export default function Dashboard() {
+  const { flats, getDashboardStats, getFlatsByStatus } = useDataStore()
+  const stats = getDashboardStats()
+  
+  const occupiedFlats = getFlatsByStatus('occupied')
+  const vacantFlats = getFlatsByStatus('vacant')
+  const maintenanceFlats = getFlatsByStatus('maintenance')
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your rental property management</p>
-        {!isSupabaseConfigured() && (
-          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-            <p className="text-sm text-yellow-800">
-              <strong>Demo Mode:</strong> Showing sample data. Configure Supabase to connect to your database.
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-lg text-muted-foreground">Overview of your rental property management</p>
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Dynamic Mode:</strong> All changes are saved locally and persist between sessions.
+          </p>
+        </div>
+      </div>
+
+      {/* Key Statistics */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Flats</CardTitle>
+            <Building className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats.totalFlats}</div>
+            <p className="text-xs text-muted-foreground">All units in building</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Occupied</CardTitle>
+            <Users className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">{stats.occupiedFlats}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.totalFlats > 0 ? Math.round((stats.occupiedFlats / stats.totalFlats) * 100) : 0}% occupancy
             </p>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">${stats.totalRentCollected.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total collected this month</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-red-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-yellow-600">${stats.totalRentPending.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">{stats.pendingPayments} payments pending</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Suspense fallback={<div>Loading stats...</div>}>
-        <DashboardStats stats={stats} />
-      </Suspense>
+      {/* Quick Actions */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="hover:shadow-lg transition-all duration-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link href="/flats">
+              <Button className="w-full justify-start" variant="outline">
+                <Building className="h-4 w-4 mr-2" />
+                Manage Flats
+              </Button>
+            </Link>
+            <Link href="/tenants">
+              <Button className="w-full justify-start" variant="outline">
+                <Users className="h-4 w-4 mr-2" />
+                Manage Tenants
+              </Button>
+            </Link>
+            <Link href="/payments">
+              <Button className="w-full justify-start" variant="outline">
+                <DollarSign className="h-4 w-4 mr-2" />
+                View Payments
+              </Button>
+            </Link>
+            <Link href="/leases">
+              <Button className="w-full justify-start" variant="outline">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Manage Leases
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>All Flats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<div>Loading flats...</div>}>
-                <FlatGrid flats={flats} />
-              </Suspense>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Status Overview */}
+        <Card className="hover:shadow-lg transition-all duration-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Status Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Occupied Flats</span>
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                {stats.occupiedFlats}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Vacant Flats</span>
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                {stats.vacantFlats}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Under Maintenance</span>
+              <Badge variant="secondary" className="bg-red-100 text-red-800">
+                {stats.maintenanceFlats}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Overdue Payments</span>
+              <Badge variant="secondary" className="bg-red-100 text-red-800">
+                {stats.overduePayments}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-sm">
-                <p className="font-medium">Occupied Flats: {stats.occupiedFlats}</p>
-                <p className="font-medium">Vacant Flats: {stats.vacantFlats}</p>
-                <p className="font-medium">Maintenance: {stats.maintenanceFlats}</p>
-              </div>
-              <div className="pt-4 border-t">
-                <p className="text-sm font-medium text-red-600">{stats.overduePayments} Overdue Payments</p>
-                <p className="text-sm font-medium text-yellow-600">{stats.pendingPayments} Pending Payments</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Recent Activity */}
+        <Card className="hover:shadow-lg transition-all duration-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm">
+              <p className="font-medium text-green-600">+{stats.occupiedFlats} Active Leases</p>
+              <p className="text-muted-foreground">Currently occupied units</p>
+            </div>
+            <div className="text-sm">
+              <p className="font-medium text-blue-600">${stats.totalRentCollected.toLocaleString()}</p>
+              <p className="text-muted-foreground">Total revenue collected</p>
+            </div>
+            <div className="text-sm">
+              <p className="font-medium text-yellow-600">{stats.pendingPayments} Pending</p>
+              <p className="text-muted-foreground">Payments awaiting collection</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Flats Overview with Tabs */}
+      <Card className="hover:shadow-lg transition-all duration-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            Flats Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">All ({flats.length})</TabsTrigger>
+              <TabsTrigger value="occupied">Occupied ({occupiedFlats.length})</TabsTrigger>
+              <TabsTrigger value="vacant">Vacant ({vacantFlats.length})</TabsTrigger>
+              <TabsTrigger value="maintenance">Maintenance ({maintenanceFlats.length})</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-6">
+              <FlatGrid flats={flats} />
+            </TabsContent>
+            
+            <TabsContent value="occupied" className="mt-6">
+              <FlatGrid flats={occupiedFlats} />
+            </TabsContent>
+            
+            <TabsContent value="vacant" className="mt-6">
+              <FlatGrid flats={vacantFlats} />
+            </TabsContent>
+            
+            <TabsContent value="maintenance" className="mt-6">
+              <FlatGrid flats={maintenanceFlats} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   )
 }
