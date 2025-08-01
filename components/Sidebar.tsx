@@ -23,8 +23,8 @@ const quickActions = [
 export default function Sidebar() {
   const pathname = usePathname()
 
-  return (
-    <div className="flex flex-col w-64 bg-gray-900 text-white">
+    return (
+    <div className="flex flex-col w-64 bg-gray-900 text-white" suppressHydrationWarning>
       <div className="flex items-center justify-center h-16 bg-gray-800">
         <h1 className="text-xl font-bold">Rental Manager</h1>
       </div>

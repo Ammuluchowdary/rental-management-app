@@ -35,9 +35,15 @@ interface FlatFormProps {
 
 export default function FlatForm({ flat, onClose, onSuccess }: FlatFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const { addFlat, updateFlat } = useDataStore()
   
   const isEditing = !!flat
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const {
     register,
@@ -85,6 +91,11 @@ export default function FlatForm({ flat, onClose, onSuccess }: FlatFormProps) {
     }
   }
 
+  // Don't render until mounted to prevent hydration issues
+  if (!isMounted) {
+    return null
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
@@ -101,7 +112,7 @@ export default function FlatForm({ flat, onClose, onSuccess }: FlatFormProps) {
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" suppressHydrationWarning>
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

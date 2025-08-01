@@ -32,9 +32,15 @@ interface TenantFormProps {
 
 export default function TenantForm({ tenant, onClose, onSuccess }: TenantFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const { addTenant, updateTenant } = useDataStore()
   
   const isEditing = !!tenant
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const {
     register,
@@ -78,6 +84,11 @@ export default function TenantForm({ tenant, onClose, onSuccess }: TenantFormPro
     }
   }
 
+  // Don't render until mounted to prevent hydration issues
+  if (!isMounted) {
+    return null
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <Card className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
@@ -94,7 +105,7 @@ export default function TenantForm({ tenant, onClose, onSuccess }: TenantFormPro
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" suppressHydrationWarning>
             {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
