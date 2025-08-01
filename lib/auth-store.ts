@@ -156,7 +156,14 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated
-      })
+      }),
+      onRehydrateStorage: () => (state) => {
+        // This runs after rehydration
+        if (state) {
+          console.log('Auth store rehydrated:', state)
+          state.isLoading = false
+        }
+      }
     }
   )
 ) 

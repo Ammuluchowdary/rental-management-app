@@ -366,6 +366,13 @@ export const useDataStore = create<DataStore>()(
         leases: state.leases,
         payments: state.payments,
       }),
+      onRehydrateStorage: () => (state) => {
+        // This runs after rehydration
+        if (state) {
+          console.log('Data store rehydrated:', state)
+          state.isLoading = false
+        }
+      }
     }
   )
 ) 

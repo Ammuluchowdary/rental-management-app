@@ -15,6 +15,23 @@ import Link from "next/link"
 export default function Dashboard() {
   const { flats, getDashboardStats, getFlatsByStatus } = useDataStore()
   const { user } = useAuthStore()
+  
+  console.log('Dashboard: flats:', flats, 'user:', user)
+  
+  // Add error handling for data store
+  if (!flats || flats.length === 0) {
+    console.log('Dashboard: No flats data, showing loading...')
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading data...</p>
+          <p className="text-sm text-gray-500 mt-2">If this persists, try refreshing the page</p>
+        </div>
+      </div>
+    )
+  }
+  
   const stats = getDashboardStats()
   const occupiedFlats = getFlatsByStatus('occupied')
   const vacantFlats = getFlatsByStatus('vacant')
@@ -34,7 +51,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">
-              {getGreeting()}, {user?.name?.split(' ')[0] || 'User'}! 👋
+              {getGreeting()}, {user?.name?.split(' ')[0] || 'Guest'}! 👋
             </h1>
             <p className="text-lg text-muted-foreground">
               Welcome to your rental management dashboard
@@ -42,7 +59,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              {user?.role || 'User'}
+              {user?.role || 'Guest'}
             </Badge>
           </div>
         </div>
