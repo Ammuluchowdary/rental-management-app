@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export interface User {
+interface User {
   id: string
   email: string
   name: string
@@ -9,107 +9,131 @@ export interface User {
   created_at: string
 }
 
-export interface AuthState {
+interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  rememberMe: boolean
-}
-
-export interface AuthActions {
-  login: (email: string, password: string, rememberMe: boolean) => Promise<boolean>
+  
+  // Auth actions
+  login: (email: string, password: string) => Promise<boolean>
+  signup: (name: string, email: string, password: string) => Promise<boolean>
   logout: () => void
-  register: (name: string, email: string, password: string) => Promise<boolean>
   clearError: () => void
-  setRememberMe: (remember: boolean) => void
 }
 
-type AuthStore = AuthState & AuthActions
-
-// Mock users for demonstration
-const mockUsers: User[] = [
+// Mock users for demo (in real app, this would be in a database)
+const mockUsers = [
   {
     id: '1',
     email: 'admin@rental.com',
+    password: 'admin123',
     name: 'Admin User',
-    role: 'admin',
+    role: 'admin' as const,
     created_at: '2024-01-01T00:00:00Z'
   },
   {
     id: '2',
     email: 'manager@rental.com',
+    password: 'manager123',
     name: 'Property Manager',
-    role: 'manager',
+    role: 'manager' as const,
     created_at: '2024-01-01T00:00:00Z'
   },
   {
     id: '3',
     email: 'user@rental.com',
+    password: 'user123',
     name: 'Regular User',
-    role: 'user',
+    role: 'user' as const,
     created_at: '2024-01-01T00:00:00Z'
   }
 ]
 
-export const useAuthStore = create<AuthStore>()(
+export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      // Initial state
       user: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      rememberMe: false,
 
-      // Actions
-      login: async (email: string, password: string, rememberMe: boolean) => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null })
-
+        
         try {
           // Simulate API delay
           await new Promise(resolve => setTimeout(resolve, 1000))
-
-          // Mock authentication logic
-          const user = mockUsers.find(u => u.email === email)
           
-          if (!user) {
-            set({ 
-              isLoading: false, 
-              error: 'Invalid email or password',
-              isAuthenticated: false,
-              user: null
+          const user = mockUsers.find(u => u.email === email && u.password === password)
+          
+          if (user) {
+            const { password: _, ...userWithoutPassword } = user
+            set({
+              user: userWithoutPassword,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null
+            })
+            return true
+          } else {
+            set({
+              isLoading: false,
+              error: 'Invalid email or password'
             })
             return false
           }
-
-          // In a real app, you would verify the password here
-          // For demo purposes, we'll accept any password for existing users
-          if (password.length < 6) {
-            set({ 
-              isLoading: false, 
-              error: 'Password must be at least 6 characters',
-              isAuthenticated: false,
-              user: null
-            })
-            return false
-          }
-
+        } catch (error) {
           set({
-            user,
+            isLoading: false,
+            error: 'Login failed. Please try again.'
+          })
+          return false
+        }
+      },
+
+      signup: async (name: string, email: string, password: string) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          // Simulate API delay
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          // Check if user already exists
+          const existingUser = mockUsers.find(u => u.email === email)
+          if (existingUser) {
+            set({
+              isLoading: false,
+              error: 'User with this email already exists'
+            })
+            return false
+          }
+          
+          // Create new user
+          const newUser = {
+            id: Date.now().toString(),
+            email,
+            password,
+            name,
+            role: 'user' as const,
+            created_at: new Date().toISOString()
+          }
+          
+          // In a real app, you'd save to database
+          mockUsers.push(newUser)
+          
+          const { password: _, ...userWithoutPassword } = newUser
+          set({
+            user: userWithoutPassword,
             isAuthenticated: true,
             isLoading: false,
-            error: null,
-            rememberMe
+            error: null
           })
-
           return true
         } catch (error) {
-          set({ 
-            isLoading: false, 
-            error: 'Login failed. Please try again.',
-            isAuthenticated: false,
-            user: null
+          set({
+            isLoading: false,
+            error: 'Signup failed. Please try again.'
           })
           return false
         }
@@ -119,85 +143,19 @@ export const useAuthStore = create<AuthStore>()(
         set({
           user: null,
           isAuthenticated: false,
-          error: null,
-          rememberMe: false
+          error: null
         })
-      },
-
-      register: async (name: string, email: string, password: string) => {
-        set({ isLoading: true, error: null })
-
-        try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 1000))
-
-          // Check if user already exists
-          const existingUser = mockUsers.find(u => u.email === email)
-          if (existingUser) {
-            set({ 
-              isLoading: false, 
-              error: 'User with this email already exists',
-              isAuthenticated: false,
-              user: null
-            })
-            return false
-          }
-
-          // Validate password
-          if (password.length < 6) {
-            set({ 
-              isLoading: false, 
-              error: 'Password must be at least 6 characters',
-              isAuthenticated: false,
-              user: null
-            })
-            return false
-          }
-
-          // Create new user
-          const newUser: User = {
-            id: Date.now().toString(),
-            email,
-            name,
-            role: 'user', // Default role for new registrations
-            created_at: new Date().toISOString()
-          }
-
-          // In a real app, you would save this to your database
-          // For demo purposes, we'll just set the user as logged in
-          set({
-            user: newUser,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null
-          })
-
-          return true
-        } catch (error) {
-          set({ 
-            isLoading: false, 
-            error: 'Registration failed. Please try again.',
-            isAuthenticated: false,
-            user: null
-          })
-          return false
-        }
       },
 
       clearError: () => {
         set({ error: null })
-      },
-
-      setRememberMe: (remember: boolean) => {
-        set({ rememberMe: remember })
       }
     }),
     {
       name: 'rental-auth',
       partialize: (state) => ({
         user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        rememberMe: state.rememberMe
+        isAuthenticated: state.isAuthenticated
       })
     }
   )

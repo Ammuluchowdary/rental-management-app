@@ -9,8 +9,8 @@ import AuthGuard from "@/components/AuthGuard"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Rental Management Pro",
-  description: "Professional rental property management system",
+  title: "Rental Management System",
+  description: "Complete rental property management solution",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -95,7 +95,7 @@ export default function TenantsPage() {
       {/* Header Section */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div>
+      <div>
             <h1 className="text-4xl font-bold tracking-tight">Tenant Management</h1>
             <p className="text-lg text-muted-foreground">Manage all tenant information and records</p>
           </div>
@@ -144,7 +144,7 @@ export default function TenantsPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Inactive Tenants</CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
+            </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{inactiveTenants.length}</div>
             <p className="text-xs text-muted-foreground">
@@ -165,7 +165,7 @@ export default function TenantsPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+              </div>
 
       {/* Search and Filter Controls */}
       <div className="flex items-center gap-4 flex-wrap">
@@ -192,7 +192,7 @@ export default function TenantsPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+              </div>
 
       {/* Tenants Table */}
       <Card>
@@ -264,8 +264,8 @@ export default function TenantsPage() {
                         <div className="text-sm">{tenant.emergency_contact || 'N/A'}</div>
                         <div className="text-xs text-muted-foreground">
                           {tenant.emergency_phone || 'N/A'}
-                        </div>
-                      </div>
+              </div>
+              </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center gap-2 justify-end">
@@ -297,15 +297,15 @@ export default function TenantsPage() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      </div>
+              </div>
                     </TableCell>
                   </TableRow>
                 )
               })}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
       {/* Tenant Forms */}
       {showAddForm && (

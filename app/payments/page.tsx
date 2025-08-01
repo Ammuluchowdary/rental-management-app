@@ -117,7 +117,7 @@ export default function PaymentsPage() {
       {/* Header Section */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div>
+      <div>
             <h1 className="text-4xl font-bold tracking-tight">Payments Management</h1>
             <p className="text-lg text-muted-foreground">Track and manage all rent payments</p>
           </div>
@@ -191,22 +191,22 @@ export default function PaymentsPage() {
 
       {/* Filter and Controls */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Filter by Status:</span>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="All payments" />
-          </SelectTrigger>
-          <SelectContent>
+                  </SelectTrigger>
+                  <SelectContent>
             <SelectItem value="all">All Payments</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="overdue">Overdue</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+                  </SelectContent>
+                </Select>
+              </div>
 
       {/* Payments Table */}
       <Card>
@@ -267,12 +267,12 @@ export default function PaymentsPage() {
                             <SelectItem value="overdue">Overdue</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
+              </div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs truncate">
                         {payment.notes || '-'}
-                      </div>
+            </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center gap-2 justify-end">
@@ -287,7 +287,7 @@ export default function PaymentsPage() {
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" size="sm">
                               <Trash2 className="h-4 w-4" />
-                            </Button>
+              </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
@@ -304,7 +304,7 @@ export default function PaymentsPage() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      </div>
+          </div>
                     </TableCell>
                   </TableRow>
                 )
