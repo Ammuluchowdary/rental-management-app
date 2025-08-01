@@ -91,12 +91,18 @@ export const useDataStore = create<DataStore>()(
 
       // Tenant operations
       addTenant: (tenantData) => {
-        const newTenant: Tenant = {
-          ...tenantData,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString(),
+        try {
+          const newTenant: Tenant = {
+            ...tenantData,
+            id: Date.now().toString(),
+            created_at: new Date().toISOString(),
+          }
+          set((state) => ({ tenants: [...state.tenants, newTenant] }))
+          console.log('Tenant added successfully:', newTenant)
+        } catch (error) {
+          console.error('Error adding tenant:', error)
+          throw error
         }
-        set((state) => ({ tenants: [...state.tenants, newTenant] }))
       },
 
       updateTenant: (id, updates) => {

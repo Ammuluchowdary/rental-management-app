@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import Sidebar from "@/components/Sidebar"
+import ErrorBoundary from "@/components/ErrorBoundary"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,12 +21,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <div className="flex h-screen bg-gray-100">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            <div className="p-6">{children}</div>
-          </main>
-        </div>
+        <ErrorBoundary>
+          <div className="flex h-screen bg-gray-100">
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto">
+              <div className="p-6">{children}</div>
+            </main>
+          </div>
+        </ErrorBoundary>
       </body>
     </html>
   )
