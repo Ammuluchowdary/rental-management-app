@@ -1,6 +1,6 @@
 import type { Tenant, Flat, RentPayment, DashboardStats } from "./types"
 
-export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string; monthly_rent: number } }> })[] = [
+export const mockTenants: Tenant[] = [
   {
     id: "1",
     full_name: "John Smith",
@@ -11,7 +11,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID001",
     occupation: "Software Engineer",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "101", monthly_rent: 1200 } }],
   },
   {
     id: "2",
@@ -23,7 +22,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID002",
     occupation: "Teacher",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "103", monthly_rent: 1800 } }],
   },
   {
     id: "3",
@@ -35,7 +33,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID003",
     occupation: "Doctor",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "105", monthly_rent: 850 } }],
   },
   {
     id: "4",
@@ -47,7 +44,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID004",
     occupation: "Designer",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "201", monthly_rent: 1250 } }],
   },
   {
     id: "5",
@@ -59,7 +55,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID005",
     occupation: "Manager",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "203", monthly_rent: 1850 } }],
   },
   {
     id: "6",
@@ -71,7 +66,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID006",
     occupation: "Nurse",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "301", monthly_rent: 1300 } }],
   },
   {
     id: "7",
@@ -83,7 +77,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID007",
     occupation: "Accountant",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "302", monthly_rent: 1000 } }],
   },
   {
     id: "8",
@@ -95,7 +88,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID008",
     occupation: "Lawyer",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "304", monthly_rent: 1400 } }],
   },
   {
     id: "9",
@@ -107,7 +99,6 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID009",
     occupation: "Engineer",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "401", monthly_rent: 1350 } }],
   },
   {
     id: "10",
@@ -119,11 +110,10 @@ export const mockTenants: (Tenant & { lease: Array<{ flat: { flat_number: string
     id_number: "ID010",
     occupation: "Marketing",
     created_at: "2024-01-01T00:00:00Z",
-    lease: [{ flat: { flat_number: "403", monthly_rent: 2000 } }],
   },
 ]
 
-export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: string } } }> = [
+export const mockFlats: Flat[] = [
   {
     id: "1",
     flat_number: "101",
@@ -135,7 +125,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "2BHK with balcony",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "John Smith" } },
   },
   {
     id: "2",
@@ -160,7 +149,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "3BHK family unit",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Maria Garcia" } },
   },
   {
     id: "4",
@@ -185,7 +173,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "1BHK studio style",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "David Johnson" } },
   },
   {
     id: "6",
@@ -198,7 +185,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "2BHK with city view",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Lisa Chen" } },
   },
   {
     id: "7",
@@ -223,7 +209,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "3BHK premium unit",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Robert Wilson" } },
   },
   {
     id: "9",
@@ -260,7 +245,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "2BHK corner unit",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Anna Rodriguez" } },
   },
   {
     id: "12",
@@ -273,7 +257,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "1BHK with parking",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "James Brown" } },
   },
   {
     id: "13",
@@ -298,7 +281,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "2BHK with terrace",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Sophie Taylor" } },
   },
   {
     id: "15",
@@ -323,7 +305,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "2BHK top floor",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Michael Davis" } },
   },
   {
     id: "17",
@@ -348,7 +329,6 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "3BHK penthouse",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Emily White" } },
   },
   {
     id: "19",
@@ -373,13 +353,10 @@ export const mockFlats: Array<Flat & { current_lease?: { tenant: { full_name: st
     status: "occupied",
     description: "1BHK top floor unit",
     created_at: "2024-01-01T00:00:00Z",
-    current_lease: { tenant: { full_name: "Alex Johnson" } },
   },
 ]
 
-export const mockPayments: Array<
-  RentPayment & { lease: { flat: { flat_number: string }; tenant: { full_name: string } } }
-> = [
+export const mockPayments: RentPayment[] = [
   {
     id: "1",
     lease_id: "1",
@@ -390,7 +367,6 @@ export const mockPayments: Array<
     status: "paid",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "101" }, tenant: { full_name: "John Smith" } },
   },
   {
     id: "2",
@@ -402,7 +378,6 @@ export const mockPayments: Array<
     status: "pending",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "103" }, tenant: { full_name: "Maria Garcia" } },
   },
   {
     id: "3",
@@ -414,7 +389,6 @@ export const mockPayments: Array<
     status: "paid",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "105" }, tenant: { full_name: "David Johnson" } },
   },
   {
     id: "4",
@@ -426,7 +400,6 @@ export const mockPayments: Array<
     status: "overdue",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "201" }, tenant: { full_name: "Lisa Chen" } },
   },
   {
     id: "5",
@@ -438,7 +411,6 @@ export const mockPayments: Array<
     status: "paid",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "203" }, tenant: { full_name: "Robert Wilson" } },
   },
   {
     id: "6",
@@ -450,7 +422,6 @@ export const mockPayments: Array<
     status: "pending",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "301" }, tenant: { full_name: "Anna Rodriguez" } },
   },
   {
     id: "7",
@@ -462,7 +433,6 @@ export const mockPayments: Array<
     status: "paid",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "302" }, tenant: { full_name: "James Brown" } },
   },
   {
     id: "8",
@@ -474,7 +444,6 @@ export const mockPayments: Array<
     status: "pending",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "304" }, tenant: { full_name: "Sophie Taylor" } },
   },
   {
     id: "9",
@@ -486,7 +455,6 @@ export const mockPayments: Array<
     status: "paid",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "401" }, tenant: { full_name: "Michael Davis" } },
   },
   {
     id: "10",
@@ -498,7 +466,6 @@ export const mockPayments: Array<
     status: "overdue",
     notes: "Monthly rent payment",
     created_at: "2024-01-01T00:00:00Z",
-    lease: { flat: { flat_number: "403" }, tenant: { full_name: "Emily White" } },
   },
 ]
 
@@ -524,8 +491,6 @@ export const mockLeases = [
     security_deposit: 2400,
     status: "active",
     created_at: "2024-01-01T00:00:00Z",
-    flat: { flat_number: "101", floor: 1 },
-    tenant: { full_name: "John Smith", email: "john.smith@email.com", phone: "+1234567890" },
   },
   {
     id: "2",
@@ -537,8 +502,6 @@ export const mockLeases = [
     security_deposit: 3600,
     status: "active",
     created_at: "2024-01-01T00:00:00Z",
-    flat: { flat_number: "103", floor: 1 },
-    tenant: { full_name: "Maria Garcia", email: "maria.garcia@email.com", phone: "+1234567892" },
   },
   {
     id: "3",
@@ -550,8 +513,6 @@ export const mockLeases = [
     security_deposit: 1700,
     status: "active",
     created_at: "2024-01-01T00:00:00Z",
-    flat: { flat_number: "105", floor: 1 },
-    tenant: { full_name: "David Johnson", email: "david.johnson@email.com", phone: "+1234567894" },
   },
   {
     id: "4",
@@ -563,8 +524,6 @@ export const mockLeases = [
     security_deposit: 2500,
     status: "active",
     created_at: "2024-01-01T00:00:00Z",
-    flat: { flat_number: "201", floor: 2 },
-    tenant: { full_name: "Lisa Chen", email: "lisa.chen@email.com", phone: "+1234567896" },
   },
   {
     id: "5",
@@ -576,7 +535,5 @@ export const mockLeases = [
     security_deposit: 3700,
     status: "active",
     created_at: "2024-01-01T00:00:00Z",
-    flat: { flat_number: "203", floor: 2 },
-    tenant: { full_name: "Robert Wilson", email: "robert.wilson@email.com", phone: "+1234567898" },
   },
 ]

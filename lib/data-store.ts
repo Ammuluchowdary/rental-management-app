@@ -54,39 +54,59 @@ export const useDataStore = create<DataStore>()(
   persist(
     (set, get) => ({
       // Initial data
-      flats: mockFlats,
-      tenants: mockTenants,
-      leases: mockLeases,
-      payments: mockPayments,
+      flats: mockFlats || [],
+      tenants: mockTenants || [],
+      leases: mockLeases || [],
+      payments: mockPayments || [],
       isLoading: false,
       error: null,
 
       // Flat operations
       addFlat: (flatData) => {
-        const newFlat: Flat = {
-          ...flatData,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString(),
+        try {
+          const newFlat: Flat = {
+            ...flatData,
+            id: Date.now().toString(),
+            created_at: new Date().toISOString(),
+          }
+          set((state) => ({ flats: [...state.flats, newFlat] }))
+        } catch (error) {
+          console.error('Error adding flat:', error)
+          set((state) => ({ error: 'Failed to add flat' }))
         }
-        set((state) => ({ flats: [...state.flats, newFlat] }))
       },
 
       updateFlat: (id, updates) => {
-        set((state) => ({
-          flats: state.flats.map((flat) =>
-            flat.id === id ? { ...flat, ...updates } : flat
-          ),
-        }))
+        try {
+          set((state) => ({
+            flats: state.flats.map((flat) =>
+              flat.id === id ? { ...flat, ...updates } : flat
+            ),
+          }))
+        } catch (error) {
+          console.error('Error updating flat:', error)
+          set((state) => ({ error: 'Failed to update flat' }))
+        }
       },
 
       deleteFlat: (id) => {
-        set((state) => ({
-          flats: state.flats.filter((flat) => flat.id !== id),
-        }))
+        try {
+          set((state) => ({
+            flats: state.flats.filter((flat) => flat.id !== id),
+          }))
+        } catch (error) {
+          console.error('Error deleting flat:', error)
+          set((state) => ({ error: 'Failed to delete flat' }))
+        }
       },
 
       getFlat: (id) => {
-        return get().flats.find((flat) => flat.id === id)
+        try {
+          return get().flats.find((flat) => flat.id === id)
+        } catch (error) {
+          console.error('Error getting flat:', error)
+          return undefined
+        }
       },
 
       // Tenant operations
@@ -101,138 +121,241 @@ export const useDataStore = create<DataStore>()(
           console.log('Tenant added successfully:', newTenant)
         } catch (error) {
           console.error('Error adding tenant:', error)
+          set((state) => ({ error: 'Failed to add tenant' }))
           throw error
         }
       },
 
       updateTenant: (id, updates) => {
-        set((state) => ({
-          tenants: state.tenants.map((tenant) =>
-            tenant.id === id ? { ...tenant, ...updates } : tenant
-          ),
-        }))
+        try {
+          set((state) => ({
+            tenants: state.tenants.map((tenant) =>
+              tenant.id === id ? { ...tenant, ...updates } : tenant
+            ),
+          }))
+        } catch (error) {
+          console.error('Error updating tenant:', error)
+          set((state) => ({ error: 'Failed to update tenant' }))
+        }
       },
 
       deleteTenant: (id) => {
-        set((state) => ({
-          tenants: state.tenants.filter((tenant) => tenant.id !== id),
-        }))
+        try {
+          set((state) => ({
+            tenants: state.tenants.filter((tenant) => tenant.id !== id),
+          }))
+        } catch (error) {
+          console.error('Error deleting tenant:', error)
+          set((state) => ({ error: 'Failed to delete tenant' }))
+        }
       },
 
       getTenant: (id) => {
-        return get().tenants.find((tenant) => tenant.id === id)
+        try {
+          return get().tenants.find((tenant) => tenant.id === id)
+        } catch (error) {
+          console.error('Error getting tenant:', error)
+          return undefined
+        }
       },
 
       // Lease operations
       addLease: (leaseData) => {
-        const newLease: Lease = {
-          ...leaseData,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString(),
+        try {
+          const newLease: Lease = {
+            ...leaseData,
+            id: Date.now().toString(),
+            created_at: new Date().toISOString(),
+          }
+          set((state) => ({ leases: [...state.leases, newLease] }))
+        } catch (error) {
+          console.error('Error adding lease:', error)
+          set((state) => ({ error: 'Failed to add lease' }))
         }
-        set((state) => ({ leases: [...state.leases, newLease] }))
       },
 
       updateLease: (id, updates) => {
-        set((state) => ({
-          leases: state.leases.map((lease) =>
-            lease.id === id ? { ...lease, ...updates } : lease
-          ),
-        }))
+        try {
+          set((state) => ({
+            leases: state.leases.map((lease) =>
+              lease.id === id ? { ...lease, ...updates } : lease
+            ),
+          }))
+        } catch (error) {
+          console.error('Error updating lease:', error)
+          set((state) => ({ error: 'Failed to update lease' }))
+        }
       },
 
       deleteLease: (id) => {
-        set((state) => ({
-          leases: state.leases.filter((lease) => lease.id !== id),
-        }))
+        try {
+          set((state) => ({
+            leases: state.leases.filter((lease) => lease.id !== id),
+          }))
+        } catch (error) {
+          console.error('Error deleting lease:', error)
+          set((state) => ({ error: 'Failed to delete lease' }))
+        }
       },
 
       getLease: (id) => {
-        return get().leases.find((lease) => lease.id === id)
+        try {
+          return get().leases.find((lease) => lease.id === id)
+        } catch (error) {
+          console.error('Error getting lease:', error)
+          return undefined
+        }
       },
 
       // Payment operations
       addPayment: (paymentData) => {
-        const newPayment: RentPayment = {
-          ...paymentData,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString(),
+        try {
+          const newPayment: RentPayment = {
+            ...paymentData,
+            id: Date.now().toString(),
+            created_at: new Date().toISOString(),
+          }
+          set((state) => ({ payments: [...state.payments, newPayment] }))
+        } catch (error) {
+          console.error('Error adding payment:', error)
+          set((state) => ({ error: 'Failed to add payment' }))
         }
-        set((state) => ({ payments: [...state.payments, newPayment] }))
       },
 
       updatePayment: (id, updates) => {
-        set((state) => ({
-          payments: state.payments.map((payment) =>
-            payment.id === id ? { ...payment, ...updates } : payment
-          ),
-        }))
+        try {
+          set((state) => ({
+            payments: state.payments.map((payment) =>
+              payment.id === id ? { ...payment, ...updates } : payment
+            ),
+          }))
+        } catch (error) {
+          console.error('Error updating payment:', error)
+          set((state) => ({ error: 'Failed to update payment' }))
+        }
       },
 
       deletePayment: (id) => {
-        set((state) => ({
-          payments: state.payments.filter((payment) => payment.id !== id),
-        }))
+        try {
+          set((state) => ({
+            payments: state.payments.filter((payment) => payment.id !== id),
+          }))
+        } catch (error) {
+          console.error('Error deleting payment:', error)
+          set((state) => ({ error: 'Failed to delete payment' }))
+        }
       },
 
       getPayment: (id) => {
-        return get().payments.find((payment) => payment.id === id)
+        try {
+          return get().payments.find((payment) => payment.id === id)
+        } catch (error) {
+          console.error('Error getting payment:', error)
+          return undefined
+        }
       },
 
       // Computed values
       getDashboardStats: () => {
-        const state = get()
-        const occupiedFlats = state.flats.filter((f) => f.status === 'occupied')
-        const vacantFlats = state.flats.filter((f) => f.status === 'vacant')
-        const maintenanceFlats = state.flats.filter((f) => f.status === 'maintenance')
-        const pendingPayments = state.payments.filter((p) => p.status === 'pending')
-        const overduePayments = state.payments.filter((p) => p.status === 'overdue')
-        const paidPayments = state.payments.filter((p) => p.status === 'paid')
+        try {
+          const state = get()
+          const totalFlats = state.flats.length
+          const occupiedFlats = state.flats.filter((flat) => flat.status === "occupied").length
+          const vacantFlats = state.flats.filter((flat) => flat.status === "vacant").length
+          const maintenanceFlats = state.flats.filter((flat) => flat.status === "maintenance").length
+          const pendingPayments = state.payments.filter((payment) => payment.status === "pending").length
+          const overduePayments = state.payments.filter((payment) => payment.status === "overdue").length
+          const totalRentCollected = state.payments
+            .filter((payment) => payment.status === "paid")
+            .reduce((sum, payment) => sum + payment.amount, 0)
+          const totalRentPending = state.payments
+            .filter((payment) => payment.status === "pending")
+            .reduce((sum, payment) => sum + payment.amount, 0)
 
-        return {
-          totalFlats: state.flats.length,
-          occupiedFlats: occupiedFlats.length,
-          vacantFlats: vacantFlats.length,
-          maintenanceFlats: maintenanceFlats.length,
-          pendingPayments: pendingPayments.length,
-          overduePayments: overduePayments.length,
-          totalRentCollected: paidPayments.reduce((sum, p) => sum + p.amount, 0),
-          totalRentPending: pendingPayments.reduce((sum, p) => sum + p.amount, 0),
+          return {
+            totalFlats,
+            occupiedFlats,
+            vacantFlats,
+            maintenanceFlats,
+            pendingPayments,
+            overduePayments,
+            totalRentCollected,
+            totalRentPending,
+          }
+        } catch (error) {
+          console.error('Error computing dashboard stats:', error)
+          return {
+            totalFlats: 0,
+            occupiedFlats: 0,
+            vacantFlats: 0,
+            maintenanceFlats: 0,
+            pendingPayments: 0,
+            overduePayments: 0,
+            totalRentCollected: 0,
+            totalRentPending: 0,
+          }
         }
       },
 
       getFlatsByStatus: (status) => {
-        return get().flats.filter((flat) => flat.status === status)
+        try {
+          return get().flats.filter((flat) => flat.status === status)
+        } catch (error) {
+          console.error('Error getting flats by status:', error)
+          return []
+        }
       },
 
       getTenantsByFlat: (flatId) => {
-        const state = get()
-        const flatLeases = state.leases.filter((lease) => lease.flat_id === flatId)
-        const tenantIds = flatLeases.map((lease) => lease.tenant_id)
-        return state.tenants.filter((tenant) => tenantIds.includes(tenant.id))
+        try {
+          const state = get()
+          const leases = state.leases.filter((lease) => lease.flat_id === flatId)
+          const tenantIds = leases.map((lease) => lease.tenant_id)
+          return state.tenants.filter((tenant) => tenantIds.includes(tenant.id))
+        } catch (error) {
+          console.error('Error getting tenants by flat:', error)
+          return []
+        }
       },
 
       getPaymentsByLease: (leaseId) => {
-        return get().payments.filter((payment) => payment.lease_id === leaseId)
+        try {
+          return get().payments.filter((payment) => payment.lease_id === leaseId)
+        } catch (error) {
+          console.error('Error getting payments by lease:', error)
+          return []
+        }
       },
 
       // Utility functions
       resetData: () => {
-        set({
-          flats: mockFlats,
-          tenants: mockTenants,
-          leases: mockLeases,
-          payments: mockPayments,
-          error: null,
-        })
+        try {
+          set({
+            flats: mockFlats || [],
+            tenants: mockTenants || [],
+            leases: mockLeases || [],
+            payments: mockPayments || [],
+            error: null,
+          })
+        } catch (error) {
+          console.error('Error resetting data:', error)
+        }
       },
 
       setLoading: (loading) => {
-        set({ isLoading: loading })
+        try {
+          set({ isLoading: loading })
+        } catch (error) {
+          console.error('Error setting loading state:', error)
+        }
       },
 
       setError: (error) => {
-        set({ error })
+        try {
+          set({ error })
+        } catch (error) {
+          console.error('Error setting error state:', error)
+        }
       },
     }),
     {
