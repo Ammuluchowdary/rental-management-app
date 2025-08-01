@@ -6,154 +6,269 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDataStore } from "@/lib/data-store"
 import TenantForm from "@/components/TenantForm"
-import { Plus, User, Mail, Phone, Edit, Trash2, Users } from "lucide-react"
+import { User, Phone, Mail, Building, Plus, Edit, Trash2, Search, Filter, Users, Calendar, AlertTriangle } from "lucide-react"
 
 export default function TenantsPage() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingTenant, setEditingTenant] = useState<any>(null)
-  const [showEditForm, setShowEditForm] = useState(false)
-  const { tenants, deleteTenant } = useDataStore()
+  const { tenants, flats, leases, deleteTenant } = useDataStore()
 
-  const handleEdit = (tenant: any) => {
-    setEditingTenant(tenant)
-    setShowEditForm(true)
+  const getTenantStatus = (tenantId: string) => {
+    const activeLease = leases.find(lease => 
+      lease.tenant_id === tenantId && lease.status === 'active'
+    )
+    return activeLease ? 'active' : 'inactive'
   }
+
+  const getTenantFlat = (tenantId: string) => {
+    const activeLease = leases.find(lease => 
+      lease.tenant_id === tenantId && lease.status === 'active'
+    )
+    if (!activeLease) return null
+    
+    const flat = flats.find(f => f.id === activeLease.flat_id)
+    return flat
+  }
+
+  const getTenantStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getTenantStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Building className="h-4 w-4 text-green-600" />
+      case 'inactive':
+        return <Users className="h-4 w-4 text-gray-600" />
+      default:
+        return <Users className="h-4 w-4 text-gray-600" />
+    }
+  }
+
+  const filteredTenants = tenants.filter(tenant => {
+    const matchesSearch = tenant.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tenant.phone.includes(searchTerm) ||
+                         tenant.id_number.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const status = getTenantStatus(tenant.id)
+    const matchesStatus = statusFilter === 'all' || status === statusFilter
+    
+    return matchesSearch && matchesStatus
+  })
+
+  const activeTenants = tenants.filter(tenant => getTenantStatus(tenant.id) === 'active')
+  const inactiveTenants = tenants.filter(tenant => getTenantStatus(tenant.id) === 'inactive')
+  const totalRent = activeTenants.reduce((sum, tenant) => {
+    const flat = getTenantFlat(tenant.id)
+    return sum + (flat?.monthly_rent || 0)
+  }, 0)
 
   const handleDelete = (tenantId: string) => {
     deleteTenant(tenantId)
   }
 
+  const handleEdit = (tenant: any) => {
+    setEditingTenant(tenant)
+  }
+
   const handleFormClose = () => {
     setShowAddForm(false)
-    setShowEditForm(false)
     setEditingTenant(null)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tenants Management</h1>
-          <p className="text-muted-foreground">Manage all tenants and their information</p>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Tenant Management</h1>
+            <p className="text-lg text-muted-foreground">Manage all tenant information and records</p>
+          </div>
+          <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Tenant
+          </Button>
         </div>
-        <Button 
-          className="flex items-center gap-2"
-          onClick={() => setShowAddForm(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Add New Tenant
-        </Button>
-      </div>
-
-      {/* Dynamic Data Notice */}
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>Dynamic Mode:</strong> All changes are saved locally and persist between sessions.
-        </p>
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Real-time Mode:</strong> All tenant data is managed locally with instant updates. 
+            Search and filter tenants in real-time.
+          </p>
+        </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Tenants</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{tenants.length}</div>
-            <p className="text-xs text-muted-foreground">All registered tenants</p>
+            <p className="text-xs text-muted-foreground">
+              All registered tenants
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Tenants</CardTitle>
-            <User className="h-4 w-4 text-green-600" />
+            <Building className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{tenants.length}</div>
-            <p className="text-xs text-muted-foreground">Currently renting</p>
+            <div className="text-2xl font-bold">{activeTenants.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Currently renting
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-yellow-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Contact Info</CardTitle>
-            <Mail className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium">Inactive Tenants</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{tenants.length}</div>
-            <p className="text-xs text-muted-foreground">With contact details</p>
+            <div className="text-2xl font-bold">{inactiveTenants.length}</div>
+            <p className="text-xs text-muted-foreground">
+              No active lease
+            </p>
           </CardContent>
         </Card>
+
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <Calendar className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalRent.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              From active tenants
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filter Controls */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-1 min-w-64">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search tenants by name, email, phone, or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Status:</span>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tenants</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tenants Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            All Tenants ({tenants.length})
-          </CardTitle>
+          <CardTitle>Tenant Records ({filteredTenants.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {tenants.length === 0 ? (
-            <div className="text-center py-8">
-              <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No tenants found. Add your first tenant to get started.</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Occupation</TableHead>
-                  <TableHead>Emergency Contact</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tenants.map((tenant) => (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tenant</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Current Flat</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Occupation</TableHead>
+                <TableHead>Emergency Contact</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTenants.map((tenant) => {
+                const status = getTenantStatus(tenant.id)
+                const currentFlat = getTenantFlat(tenant.id)
+                return (
                   <TableRow key={tenant.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{tenant.full_name}</p>
-                        <p className="text-sm text-muted-foreground">ID: {tenant.id_number}</p>
+                        <div className="font-medium">{tenant.full_name}</div>
+                        <div className="text-sm text-muted-foreground">ID: {tenant.id_number}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <Mail className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{tenant.email}</span>
+                          <span className="text-sm">{tenant.email || 'N/A'}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <Phone className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">{tenant.phone}</span>
+                          <span className="text-sm">{tenant.phone || 'N/A'}</span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{tenant.occupation}</Badge>
+                      {currentFlat ? (
+                        <div>
+                          <div className="font-medium">Flat {currentFlat.flat_number}</div>
+                          <div className="text-sm text-muted-foreground">
+                            ${currentFlat.monthly_rent}/month
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">No active lease</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getTenantStatusIcon(status)}
+                        <Badge className={`${getTenantStatusColor(status)} font-medium`}>
+                          {status}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{tenant.occupation || 'N/A'}</span>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium">{tenant.emergency_contact}</p>
-                        <p className="text-sm text-muted-foreground">{tenant.emergency_phone}</p>
+                        <div className="text-sm">{tenant.emergency_contact || 'N/A'}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {tenant.emergency_phone || 'N/A'}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(tenant.created_at).toLocaleDateString()}
-                      </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex items-center gap-2 justify-end">
                         <Button
                           variant="outline"
                           size="sm"
@@ -163,7 +278,7 @@ export default function TenantsPage() {
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                            <Button variant="outline" size="sm">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -171,15 +286,12 @@ export default function TenantsPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Tenant</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete {tenant.full_name}? This action cannot be undone.
+                                Are you sure you want to delete this tenant? This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(tenant.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
+                              <AlertDialogAction onClick={() => handleDelete(tenant.id)}>
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -188,27 +300,22 @@ export default function TenantsPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                )
+              })}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
-      {/* Add Form Modal */}
+      {/* Tenant Forms */}
       {showAddForm && (
-        <TenantForm
-          onClose={handleFormClose}
-          onSuccess={handleFormClose}
-        />
+        <TenantForm onClose={handleFormClose} onSuccess={handleFormClose} />
       )}
-
-      {/* Edit Form Modal */}
-      {showEditForm && editingTenant && (
-        <TenantForm
-          tenant={editingTenant}
-          onClose={handleFormClose}
-          onSuccess={handleFormClose}
+      {editingTenant && (
+        <TenantForm 
+          tenant={editingTenant} 
+          onClose={handleFormClose} 
+          onSuccess={handleFormClose} 
         />
       )}
     </div>
